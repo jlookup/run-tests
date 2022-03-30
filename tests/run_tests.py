@@ -30,5 +30,5 @@ def run_tests():
                 getattr(t, test)()
                 print('...success')
             except Exception as e:
-                print('...failed')
+                print(e)
                 raise e 
