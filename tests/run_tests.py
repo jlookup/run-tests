@@ -1,4 +1,26 @@
 
+import inspect
+
+
+class FailedTest:
+    def __init__(self, 
+        test_class, filename,
+        lineno, function, code_context,
+        index,
+    ):
+        self.test_class = test_class
+        self.filename = filename
+        self.lineno = lineno
+        self.function = function
+        self.code_context = code_context
+        self.index = index
+
+    def __repr__(self) -> str:
+        return (f"FAILED TEST: {self.test_class}.{self.function}\n" +
+                f"  {self.filename}\n" +
+                f"  line: {self.lineno}, index: {self.index}\n" +
+                 "  " + "\n  ".join(self.code_context)
+        )
 
 
 def run_tests(raise_on_err: bool=True, *tests_to_run: str):
@@ -63,16 +85,23 @@ def run_tests(raise_on_err: bool=True, *tests_to_run: str):
             except Exception as e:
                 print('......FAIL')
                 failcount += 1
-                failed_tests.append(f"{test_class}.{test}")
+
+                frame_info = inspect.getframeinfo(e.__traceback__.tb_next)._asdict()
+                failed_test = FailedTest(test_class, **frame_info)
+                failed_tests.append(failed_test)
+
                 if raise_on_err: raise e
 
     success = str(successcount).rjust(5)
     fail = str(failcount).rjust(5) #if failcount else '---'
+    # print('\n')
     print(f'Testing complete. Out of {testcount} tests:')
     print(f'{success} succeeded')
     print(f'{fail} failed')
     for test in failed_tests:
-        print(f'  FAILED: {test}')
+        # print(f'  FAILED: {test}')
+        print(test)
+
 
 
 template = """
