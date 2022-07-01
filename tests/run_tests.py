@@ -145,20 +145,20 @@ c = bcolors
 
 
 def format_test_result(test, max_text_len,success=True):
-    repeat = max_text_len - len(test)
-    dots = '.' * repeat if repeat > 1 else '' 
+    num_dots = max_text_len - len(test)
+    dots = '.' * num_dots if num_dots > 1 else '' 
     if success:
         return f'{dots}...{c.GREEN}success{c.END}'
     else:
         return f'{dots}......{c.RED}FAIL{c.END}'
 
     
-def format_failed_test_printout(test, exc, captured_printout):
+def format_failed_test_printout(test, exc, captured_stdout):
     tb = traceback.format_exception(type(exc), exc, exc.__traceback__)[2:]
 
     failed_test = (f"\n{c.RED}FAILED TEST{c.END}: {test}\n{''.join(tb)}")
-    if captured_printout:
-        failed_test += f"  Printouts:\n{captured_printout}"
+    if captured_stdout:
+        failed_test += f"  Captured stdout calls:\n{captured_stdout}"
     if failed_test.endswith('\n'): failed_test = failed_test[:-1]
 
     # frame_info = inspect.getframeinfo(e.__traceback__.tb_next)._asdict()
