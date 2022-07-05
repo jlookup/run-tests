@@ -206,25 +206,36 @@ def run_tests(raise_on_err: bool=True, *tests_to_run: str):
             of the functions you do want to run as strings. Only those will be run.
             Setup and teardown are still run.
     """
-    from sys import modules
-    from inspect import isclass
+    import sys
+    import inspect
 
     import pytest
 
     testcount = 0
-    successcount = 0
+    # successcount = 0
     failcount = 0
     failed_tests = []
 
 
-    mod = modules['__main__']
+    mod = sys.modules['__main__']
     mod_dir = dir(mod)
 
     test_classes = [
         attr for attr in mod_dir \
         if attr.startswith('Test') \
-        and isclass(getattr(mod,attr))
+        and inspect.isclass(getattr(mod,attr))
     ]
+
+    # TODO: adapt this to run tests outside of classes.
+    # test_classes = []
+    # test_functions = []
+    # test_methods = []
+
+    # for attr in mod_dir:
+    #     if 
+    # test_functions = [
+    #     attr for attr in mod_dir
+    # ]
 
     for test_class in test_classes:
         t = getattr(mod,test_class)()
