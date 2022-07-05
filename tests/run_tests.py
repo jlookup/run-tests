@@ -1,10 +1,55 @@
+"""Runs pytest unit tests in a module when you execute the module as a script.
+
+Enables easy debugging in VS Code.
+
+Requires pytest.
+
+Unit tests can be methods in a test class or functions in the module.
+Test function/method names must start with 'test_'. 
+Test class name must start with 'Test'.
+
+Attributes:
+    run_tests:
+
+        run_tests Args:
+            raise_on_err: Optional[bool], default True. 
+                Dictates exception behavior.
+                When True, errors are raised and stop execution. Good for running in debug mode.
+                When False, errors fail the test and testing continues.
+                Note, this does not override any error handling in the code being tested, 
+                or in pytest. It is only relevant when an exception is raised that would 
+                otherwise have stopped the execution.
+            *tests_to_run: str. 
+                If you don't want to run all tests in the module, pass the names
+                of the functions you do want to run as strings. Only those will be run.
+                (coming soon: Setup and teardown are still run.)
+
+        run_tests Usage:
+            ```python
+            import pytest
+
+            ...
+            < your pytest functions or classes >
+            ...
+
+            if __name__ == '__main__':
+                from run_tests import run_tests
+                run_tests()
+            ```
+
+"""
+
 
 import inspect
 import traceback
 import io 
 import sys
+import pathlib
+from typing import Any
 
+import pytest
 
+__all__ = ['run_tests']
 
 class SwitchStdout:
     orig = sys.stdout
@@ -18,7 +63,7 @@ class SwitchStdout:
         read_stream: bool = False,
         save_stream_as: str = None,
         flush_stream: bool = False,
-    ):
+    ) -> Any:
         """Switches stdout between the console and the filestream override.
 
         Args:
@@ -170,15 +215,22 @@ def format_failed_test_printout(test, exc, captured_stdout):
     return failed_test
 
 
-def print_test_summary(testcount, failcount, failed_tests):
-    success = str(testcount - failcount).rjust(5)
-    fail = str(failcount).rjust(5)
-    print('\n', end='')
-    print(f'Testing complete. Out of {testcount} tests:')
-    print(f'{c.GREEN}{success}{c.END} succeeded')
-    print(f'{c.RED}{fail}{c.END} failed')
-    for test in failed_tests:
-        print(test)
+class TestResults:
+    def __init__(self):
+        self.testcount: int = 0
+        # self.successcount = 0
+        self.failcount:int = 0
+        self.failed_tests: list = []
+
+    def print_test_summary(self):
+        success = str(self.testcount - self.failcount).rjust(5)
+        fail = str(self.failcount).rjust(5)
+        print('\n', end='')
+        print(f'Testing complete. Out of {self.testcount} tests:')
+        print(f'{c.GREEN}{success}{c.END} succeeded')
+        print(f'{c.RED}{fail}{c.END} failed')
+        for test in self.failed_tests:
+            print(test)
 
 
 def run_tests(raise_on_err: bool=True, *tests_to_run: str):
@@ -189,9 +241,9 @@ def run_tests(raise_on_err: bool=True, *tests_to_run: str):
 
     Requires pytest.
     
-    All unit tests must be within a test class.
-    Class name must start with 'Test'.
-    Test method names must start with 'test_'. 
+    Unit tests can be methods in a test class or functions in the module.
+    Test function/method names must start with 'test_'. 
+    Test class name must start with 'Test'.
 
     See the bottom of this module for a test file template.
 
@@ -204,88 +256,68 @@ def run_tests(raise_on_err: bool=True, *tests_to_run: str):
         :*tests_to_run: str. 
             If you don't want to run all tests in the module, pass the names
             of the functions you do want to run as strings. Only those will be run.
-            Setup and teardown are still run.
+            (coming soon: Setup and teardown are still run.)
     """
-    import sys
-    import inspect
-
-    import pytest
-
-    testcount = 0
-    # successcount = 0
-    failcount = 0
-    failed_tests = []
-
-
     mod = sys.modules['__main__']
+    mod_name = pathlib.Path(mod.__file__).stem
     mod_dir = dir(mod)
+    results = TestResults()
 
+    # Run module-level test functions
+    run_tests_in(mod_name, mod, results, tests_to_run, raise_on_err)
+
+    # Gather and run test methods within test classes
     test_classes = [
         attr for attr in mod_dir \
         if attr.startswith('Test') \
         and inspect.isclass(getattr(mod,attr))
     ]
 
-    # TODO: adapt this to run tests outside of classes.
-    # test_classes = []
-    # test_functions = []
-    # test_methods = []
+    for cls in test_classes:
+        class_name = f"{mod_name}.{cls}"
+        test_class = getattr(mod,cls)()
+        run_tests_in(class_name, test_class, results, tests_to_run, raise_on_err)
 
-    # for attr in mod_dir:
-    #     if 
-    # test_functions = [
-    #     attr for attr in mod_dir
-    # ]
+    # All tests done. Print results
+    results.print_test_summary()
 
-    for test_class in test_classes:
-        t = getattr(mod,test_class)()
-        print(f"\nGathering tests for {test_class}:")
-       
-        tests = [attr for attr in dir(t) if attr.startswith('test_')]
-        if tests_to_run:
-            tests = [test for test in tests if test in tests_to_run]
-        
+
+def run_tests_in(test_class_name, test_class, test_results, 
+                 tests_to_run, raise_on_err):
+    print(f"\nGathering tests for {test_class_name}:")
+    
+    tests = [attr for attr in dir(test_class) if attr.startswith('test_')]
+    if tests_to_run:
+        tests = [test for test in tests if test in tests_to_run]
+    
+    if tests:
         max_text_len = max(map(len,tests))
 
-        for test in tests:
-            testcount += 1
-            print(f"  running {test}", end='')
-            switch_stdout()                        
-            try:
-                getattr(t, test)()
+    for test in tests:
+        test_results.testcount += 1
+        print(f"  running {test}", end='')
+        switch_stdout()                        
+        try:
+            getattr(test_class, test)()
 
-            except Exception as e:
-                captured_printout = switch_stdout(read_stream=True)
-                failed_test = format_failed_test_printout(test, e, captured_printout)
-                failed_tests.append(failed_test) 
+        except Exception as e:
+            captured_printout = switch_stdout(read_stream=True)
+            failed_test = format_failed_test_printout(test, e, captured_printout)
+            test_results.failed_tests.append(failed_test) 
 
-                print(format_test_result(test, max_text_len, False))          
-                failcount += 1
-                if raise_on_err: raise e
+            print(format_test_result(test, max_text_len, False))          
+            test_results.failcount += 1
+            if raise_on_err: raise e
 
-            else:
-                switch_stdout(flush_stream=True)
-                print(format_test_result(test, max_text_len))
-
-    print_test_summary(testcount, failcount, failed_tests)
+        else:
+            switch_stdout(flush_stream=True)
+            print(format_test_result(test, max_text_len))    
 
 
-template = """
-import pytest
-from sqlcmm import sqlcmd as s
-
-class TestSqlCmd:
-    qry = "select top 10 * from sys.tables"
-
-    def test_execute_sqlcmd(self):
-        # result = s.execute_sqlcmd(self.qry)
-        assert True
 
 
-if __name__ == '__main__':
-    from run_tests import run_tests
-    run_tests()
-"""
+
+
 
 
 
