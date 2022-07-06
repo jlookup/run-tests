@@ -198,7 +198,7 @@ def format_test_result(test, max_text_len,success=True):
         return f'{dots}......{c.RED}FAIL{c.END}'
 
     
-def format_failed_test_printout(test, exc, captured_stdout):
+def format_failed_test_printout(test, exc, captured_stdout, locals=None):
     tb = traceback.format_exception(type(exc), exc, exc.__traceback__)[2:]
 
     failed_test = (f"\n{c.RED}FAILED TEST{c.END}: {test}\n{''.join(tb)}")
@@ -213,6 +213,30 @@ def format_failed_test_printout(test, exc, captured_stdout):
     # TODO: capture and print local variables inside the test
 
     return failed_test
+
+
+def get_local_variables():
+    """Adds local variables to the log record if an exception was raised.
+
+    The record's `exc_info` attribute is used as the indicator that an exception
+    was encountered. If any variable is of type `PrefectFuture`, it is replaced
+    with its underlying value.
+
+    Args:
+        record: the logging object that has been passed to a logger.
+
+    Returns:
+        A copy of `record`, unchanged if there was no exception, 
+          or with an added attribute `variables` containing a dict
+          of the local variables and their values in the scope where
+          the record was created. 
+    """
+    locals: dict = None
+    try:
+        locals = inspect.trace()[-1][0].f_locals
+    except:
+        _=''
+    return locals
 
 
 class TestResults:
@@ -233,7 +257,8 @@ class TestResults:
             print(test)
 
 
-def run_tests(raise_on_err: bool=True, *tests_to_run: str):
+
+def run_tests(raise_on_err: bool=False, *tests_to_run: str):
     """
     Runs pytest unit tests in a module
     without calling the testing framework.
@@ -302,11 +327,15 @@ def run_tests_in(test_class_name, test_class, test_results,
 
         except Exception as e:
             captured_printout = switch_stdout(read_stream=True)
-            failed_test = format_failed_test_printout(test, e, captured_printout)
+            locals = get_local_variables()
+            failed_test = format_failed_test_printout(
+                test, e, captured_printout, locals
+            )
             test_results.failed_tests.append(failed_test) 
 
             print(format_test_result(test, max_text_len, False))          
             test_results.failcount += 1
+            # err = sys.exc_info()
             if raise_on_err: raise e
 
         else:
