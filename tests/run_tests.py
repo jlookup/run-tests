@@ -111,7 +111,9 @@ class SwitchStdout:
             elif print_stream:
                 cls.print_stream()
             elif read_stream:
-                return_val = cls.read_stream()
+                # return early to avoid returning 
+                # sys.stdout when saved stream is None
+                return cls.read_stream()
             elif flush_stream:
                 cls._flush_stream()
 
@@ -121,7 +123,7 @@ class SwitchStdout:
             sys.stdout = cls.redir
             cls.is_switched = True
 
-        return return_val or sys.stdout
+        return sys.stdout
 
     @classmethod 
     def save_stream(cls, name):
