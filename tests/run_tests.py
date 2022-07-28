@@ -1,42 +1,58 @@
 """Runs pytest unit tests in a module when you execute the module as a script.
 
-Enables easy debugging in VS Code.
-
-Requires pytest.
+Enables easy debugging in VS Code. Set your breakpoints and run the test module
+in debug mode.
 
 Unit tests can be methods in a test class or functions in the module.
-Test function/method names must start with 'test_'. 
-Test class name must start with 'Test'.
+Test function/method names must start with `test_`. 
+Test class name must start with `Test`.
 
-Attributes:
-    run_tests:
+Pytest can also be run as usual. 
 
-        run_tests Args:
-            raise_on_err: Optional[bool], default True. 
-                Dictates exception behavior.
-                When True, errors are raised and stop execution. Good for running in debug mode.
-                When False, errors fail the test and testing continues.
-                Note, this does not override any error handling in the code being tested, 
-                or in pytest. It is only relevant when an exception is raised that would 
-                otherwise have stopped the execution.
-            *tests_to_run: str. 
-                If you don't want to run all tests in the module, pass the names
-                of the functions you do want to run as strings. Only those will be run.
-                (coming soon: Setup and teardown are still run.)
+Entry point: `run_tests()`
+    Args:
+        raise_on_err: Optional[bool], default False. 
+            Dictates exception behavior.
+            When True, errors are raised and stop execution. Good for running in debug mode.
+            When False, errors fail the test and testing continues.
+            Note, this does not override any error handling in the code being tested, 
+            or in pytest. It is only relevant when an exception is raised that would 
+            otherwise have stopped the execution.
+        *tests_to_run: str. 
+            If you don't want to run all tests in the module, pass the names
+            of the functions you do want to run as strings. Only those will be run.
+            (coming soon: support for setup and teardown.)
 
-        run_tests Usage:
-            ```python
-            import pytest
+Usage:
+    ```python
+    # tests/test_my_module.py
+    import pytest
+    from run_tests import run_tests
 
-            ...
-            < your pytest functions or classes >
-            ...
+    import my_module
 
-            if __name__ == '__main__':
-                from run_tests import run_tests
-                run_tests()
-            ```
+    ...
+    # your pytest functions or classes 
+    # eg: 
+    # def test_my_function(): 
+    #   expected = 1
+    #   result = my_module.my_function()
+    #   asset result == expected
+    ...
 
+    if __name__ == '__main__':
+        
+        # run everything
+        run_tests()
+
+        # or just run select tests
+        # must explicitly supply raise_on_err 
+        run_tests(
+            raise_on_err=True,
+            'test_my_function',
+            'test_my_other_function',
+        )
+    ```
 """
 
 
@@ -274,7 +290,7 @@ def run_tests(raise_on_err: bool=False, *tests_to_run: str):
 
     See the bottom of this module for a test file template.
 
-        :raise_on_err: Optional[bool], default True. Dictates exception behavior
+        :raise_on_err: Optional[bool], default False. Dictates exception behavior
             When True, errors are raised and stop execution. Good for running in debug mode.
             When False, errors fail the test and testing continues.
             Note, this does not override any error handling in the code being tested, 
