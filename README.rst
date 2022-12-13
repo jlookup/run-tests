@@ -143,14 +143,9 @@ You can specify which unit tests to run by passing the test name(s) as string(s)
 
 .. code-block:: python
 
-    def test_a():
-        assert 1 = 1 
+    # test_abc.py
 
-    def test_b():
-        assert 0 = 0
-
-    def test_c():
-        assert 1 = 0
+    ...
 
     if __name__ == '__main__':
         from run_tests.run_tests import run_tests
@@ -159,6 +154,18 @@ You can specify which unit tests to run by passing the test name(s) as string(s)
             'test_a',
             'test_b',
         )   
+
+.. code-block:: text
+
+    $ python test_abc.py 
+
+    Gathering tests for test_abc:
+      running test_a...success
+      running test_b...success
+
+    Testing complete. Out of 2 tests:
+        2 succeeded
+        0 failed
 
 Note that you must pass a value to ``raise_on_err``, and it must be positional (don't include the arg name).
 
