@@ -1,5 +1,4 @@
 
-
 # RUN-TESTS
 
 Executes the unit tests in a module when you run the module as a script.
@@ -7,6 +6,7 @@ Executes the unit tests in a module when you run the module as a script.
 Enables easy debugging in IDEs like VS Code and PyCharm. Set your breakpoints and run the test module in debug mode.
 
 ## **NOTE**
+
 This was created as an excercise to learn some of python's internals. It was not initially meant for use in production code (although I have used it without issue). 
 
 If you're using `pytest` you can get [essentially the same behavior (plus extra options)](https://docs.pytest.org/en/7.1.x/how-to/usage.html#calling-pytest-from-python-code) by adding this at the end of your module
@@ -18,7 +18,7 @@ If you're using `pytest` you can get [essentially the same behavior (plus extra 
 If you're not using `pytest`, or if you want a different output format, or you just want to learn about python's internals - then read on.
 
 
-### Usage 
+### Usage
 
 Include this at the end of each unit test module
 
@@ -76,51 +76,6 @@ Note that you must pass a value to `raise_on_err`, and it must be positional (do
 ## Formatting requirements
 
 Unit tests can be methods in a test class or functions in the module.
-  - Test function/method names must start with `test_`
-  - Test class names must start with `Test`
 
-
-Entry point: `run_tests()`
-    Args:
-        raise_on_err: Optional[bool], default False. 
-            Dictates exception behavior.
-            When True, errors are raised and stop execution. Good for running in debug mode.
-            When False, errors fail the test and testing continues.
-            Note, this does not override any error handling in the code being tested, 
-            or in pytest. It is only relevant when an exception is raised that would 
-            otherwise have stopped the execution.
-        *tests_to_run: str. 
-            If you don't want to run all tests in the module, pass the names
-            of the functions you do want to run as strings. Only those will be run.
-            (coming soon: support for setup and teardown.)
-
-Usage:
-    ```python
-    # tests/test_my_module.py
-    import pytest
-    from run_tests import run_tests
-
-    import my_module
-
-    ...
-    # your pytest functions or classes 
-    # eg: 
-    # def test_my_function(): 
-    #   expected = 1
-    #   result = my_module.my_function()
-    #   assert result == expected
-    ...
-
-    if __name__ == '__main__':
-        
-        # run everything
-        run_tests()
-
-        # or just run select tests
-        # must explicitly supply raise_on_err 
-        run_tests(
-            raise_on_err=True,
-            'test_my_function',
-            'test_my_other_function',
-        )
-    ```
+- Test function/method names must start with `test_`
+- Test class names must start with `Test`
