@@ -1,4 +1,4 @@
 
-from run_tests import run_tests
+from framework import run_tests
 
 __all__ = ['run_tests']
