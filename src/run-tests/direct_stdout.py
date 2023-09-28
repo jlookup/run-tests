@@ -5,7 +5,7 @@ from typing import Any
 
 
 class DirectStdout:
-    orig = sys.stdout
+    original_stdout = sys.stdout
     redir = io.StringIO()
     saved_streams = {}
     is_switched = False
@@ -30,7 +30,8 @@ class DirectStdout:
           flush_stream: bool, default False. When True, the current diverted filestream
             will be dumped. A new diverted filestream will be initialized as the new current.
             Note that a flush is done automatically after print_stream, read_stream, 
-            or save_stream_as.
+            or save_stream_as. If you pass flush_stream=False along with any of these
+            it will be ignored. 
 
         Returns:
             str: The contents of the diverted filestream if read_stream is True, or
@@ -53,11 +54,11 @@ class DirectStdout:
 
         if cls.is_switched:
             # TODO: create validation and Exceptions for these assertions
-            assert isinstance(cls.orig, io.TextIOWrapper)
+            assert isinstance(cls.original_stdout, io.TextIOWrapper)
             assert isinstance(sys.stdout, io.StringIO)
             assert cls.redir == sys.stdout
             assert 1 >= sum([print_stream, read_stream, (save_stream_as != None)])
-            sys.stdout = cls.orig 
+            sys.stdout = cls.original_stdout 
             cls.is_switched = False
             if save_stream_as:
                 cls.save_stream(save_stream_as)            
@@ -71,8 +72,8 @@ class DirectStdout:
                 cls._flush_stream()
 
         else:
-            assert isinstance(cls.orig, io.TextIOWrapper)
-            assert (cls.orig == sys.stdout)
+            assert isinstance(cls.original_stdout, io.TextIOWrapper)
+            assert (cls.original_stdout == sys.stdout)
             sys.stdout = cls.redir
             cls.is_switched = True
 
@@ -89,7 +90,7 @@ class DirectStdout:
     def print_stream(cls, stream_name: str = None):
         """Writes stream to the console and flushes it.
         """
-        cls.orig.write(cls._flush_stream(stream_name), end='')
+        cls.original_stdout.write(cls._flush_stream(stream_name), end='')
 
     @classmethod 
     def read_stream(cls, stream_name: str = None):
@@ -122,7 +123,7 @@ class DirectStdout:
         """
         cls.redir = io.StringIO()
         if cls.is_switched:
-            assert isinstance(cls.orig, io.TextIOWrapper)
+            assert isinstance(cls.original_stdout, io.TextIOWrapper)
             sys.stdout = cls.redir        
 
 switch = DirectStdout.switch_stdout
