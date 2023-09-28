@@ -13,6 +13,7 @@ If you're using ``pytest`` you can get `essentially the same behavior (plus extr
 .. _essentially the same behavior (plus extra options): https://docs.pytest.org/en/7.1.x/how-to/usage.html#calling-pytest-from-python-code
 
 .. code-block:: python
+    
     import pytest 
 
     # your unit tests here
