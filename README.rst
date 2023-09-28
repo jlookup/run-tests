@@ -6,7 +6,7 @@ Executes the unit tests in a module when you run the module as a script.
 
 Enables easy debugging in IDEs like VS Code and PyCharm. Set your breakpoints and run the test module in debug mode.
 
-**NOTE**: This was created as an excercise to learn some of python's internals. It was not initially meant for use in production code (although I have used it without issue). 
+**NOTE**: This was created as an excercise in code introspection and to learn some of python's internals. It was not initially meant for use in production code (although I have used it in production without issue). 
 
 If you're using ``pytest`` you can get `essentially the same behavior (plus extra options)`_ by adding this at the end of your module
 
@@ -20,11 +20,13 @@ If you're using ``pytest`` you can get `essentially the same behavior (plus extr
     if __name__ == '__main__':
         pytest.main([__file__])
 
-If you're not using `pytest`, or if you want a different output format, or you just want to learn about python's internals - then read on.
+If you're not using ``pytest``, or if you want a different output format, or you just want to learn about python's internals - then read on.
 
 
 Usage
 -----
+
+There is just one public function, ``run_tests()``. It searches the module for unit tests, executes them, and prints the results. 
 
 Include this at the end of each unit test module
 
@@ -141,7 +143,7 @@ While a test is running, calls to ``stdout`` will be captured rather than printe
     running test c
     x: 0
 
-You can specify which unit tests to run by passing the test name(s) as string(s)
+You don't have to run all tests in the module. You can specify which unit tests to run by passing the test name(s) as string(s)
 
 .. code-block:: python
 
@@ -180,4 +182,4 @@ Unit tests can be methods in a test class or functions in the module.
 - Test function/method names must start with ``test_`` (eg, ``test_my_func()``)
 - Test class names must start with ``Test`` (eg, ``TestMyClass``)
 
-You can use any testing library you want, just be sure to import it in the module and follow its rules as you normally would. You can also just use simple assert statements. 
+You can use any testing library or framework, just be sure to import it in the module and follow its rules as you normally would. You can also just use simple assert statements. 
