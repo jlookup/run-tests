@@ -13,9 +13,11 @@ If you're using ``pytest`` you can get `essentially the same behavior (plus extr
 .. _essentially the same behavior (plus extra options): https://docs.pytest.org/en/7.1.x/how-to/usage.html#calling-pytest-from-python-code
 
 .. code-block:: python
+    import pytest 
+
+    # your unit tests here
 
     if __name__ == '__main__':
-        import pytest
         pytest.main([__file__])
 
 If you're not using `pytest`, or if you want a different output format, or you just want to learn about python's internals - then read on.
@@ -29,7 +31,7 @@ Include this at the end of each unit test module
 .. code-block:: python
 
     if __name__ == '__main__':
-        from run_tests.run_tests import run_tests
+        from run_tests import run_tests
         run_tests()
 
 
@@ -40,13 +42,13 @@ Now running the module directory or in Debug mode will execute the unit tests. Y
     # test_abc.py
 
     def test_a():
-    assert 1 == 1
-
-    def test_b():
         assert 0 == 0
 
-    def test_c():
+    def test_b():
         assert 1 == 0
+
+    def test_c():
+        assert 1 == 1
 
     if __name__ == '__main__':
         from run_tests import run_tests
@@ -58,15 +60,15 @@ Now running the module directory or in Debug mode will execute the unit tests. Y
 
     Gathering tests for test_abc:
       running test_a...success
-      running test_b...success
-      running test_c......FAIL
+      running test_b......FAIL
+      running test_c...success
 
     Testing complete. Out of 3 tests:
         2 succeeded
         1 failed
 
-    FAILED TEST: test_c
-    File "unit_test.py", line 9, in test_c
+    FAILED TEST: test_b
+    File "unit_test.py", line 6, in test_b
         assert 1 == 0
     AssertionError  
 
@@ -77,7 +79,7 @@ If you want errors to be raised immediately you can pass ``raise_on_err=True``
 .. code-block:: python
 
     if __name__ == '__main__':
-        from run_tests.run_tests import run_tests
+        from run_tests import run_tests
         run_tests(raise_on_err=True)
 
 As with ``pytest``, this behavior does not affect any error handling in the code being tested (or in ``pytest``). It is only relevant when an exception is encountered that would have stopped the execution. For example, this will still run as expected and return success:
@@ -91,7 +93,7 @@ As with ``pytest``, this behavior does not affect any error handling in the code
             x = 1/0 
 
     if __name__ == '__main__':
-        from run_tests.run_tests import run_tests
+        from run_tests import run_tests
         run_tests(False)
 
 While a test is running, calls to ``stdout`` will be captured rather than printed to the console. If a test passes, the captured output is discarded. If a test fails the captured output is printed as part of that test's failure report.
@@ -148,7 +150,7 @@ You can specify which unit tests to run by passing the test name(s) as string(s)
     ...
 
     if __name__ == '__main__':
-        from run_tests.run_tests import run_tests
+        from run_tests import run_tests
         run_tests(
             False,
             'test_a',
@@ -177,3 +179,5 @@ Unit tests can be methods in a test class or functions in the module.
 
 - Test function/method names must start with ``test_`` (eg, ``test_my_func()``)
 - Test class names must start with ``Test`` (eg, ``TestMyClass``)
+
+You can use any testing library you want, just be sure to import it in the module and follow its rules as you normally would. You can also just use simple assert statements. 
