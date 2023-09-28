@@ -63,9 +63,6 @@ import sys
 import pathlib
 from typing import Any
 
-import pytest
-
-__all__ = ['run_tests']
 
 class SwitchStdout:
     orig = sys.stdout
